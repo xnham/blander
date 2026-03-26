@@ -23,6 +23,10 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 
 ## Configuration
 
+Open the extension's **Options page** (right-click the toolbar icon → Options) and enter your Anthropic API key. The key is stored locally via `chrome.storage.local` and never leaves your device.
+
+### Developer Setup (alternative)
+
 1. Create a `.env` file in the project root:
    ```
    ANTHROPIC_API_KEY=sk-ant-your-key-here
@@ -33,7 +37,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
    ```
 3. Reload the extension in `chrome://extensions/`
 
-Alternatively, copy `config.example.js` to `config.js` and replace the placeholder key manually.
+The background script will prefer a key saved through the Options page and fall back to `config.js` if none is found.
 
 ## Usage
 
@@ -52,6 +56,6 @@ Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). 
 
 ## Privacy
 
-- Your API key lives in `.env` / `config.js` (both gitignored) and never leaves your machine
+- Your API key is stored in `chrome.storage.local` on your device (or in `.env` / `config.js` for developer builds, both gitignored) and never leaves your machine
 - Headlines are sent to the Anthropic Claude API for neutralization
 - No tracking or analytics are collected
