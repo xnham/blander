@@ -27,7 +27,7 @@ const state = {
 let apiThrottlePromise = Promise.resolve(); // Initial resolved promise
 
 // Initialize default settings when extension is installed
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   if (DEBUG) console.log('Extension installed or updated');
   
   // Use sync storage for persistent settings across devices
@@ -42,6 +42,10 @@ chrome.runtime.onInstalled.addListener(() => {
     lastResetDate: new Date().toISOString(),
     headlineCache: {} // Initialize empty cache
   });
+  
+  if (details.reason === 'install') {
+    chrome.runtime.openOptionsPage();
+  }
   
   // Start the keepalive mechanism to prevent service worker termination
   startKeepalive();
