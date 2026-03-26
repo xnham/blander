@@ -597,12 +597,7 @@ function addNeutralizedIndicator(element) {
     indicator.style.borderRadius = '50%';
     indicator.style.backgroundColor = '#61afef';
     indicator.style.marginLeft = '5px';
-    
-    // Make indicator clickable to restore original
-    indicator.addEventListener('click', (e) => {
-      e.stopPropagation();
-      restoreOriginalHeadline(element);
-    });
+    indicator.title = 'Neutralized by Blander';
     
     element.appendChild(indicator);
   } catch (error) {

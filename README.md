@@ -11,7 +11,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 - Persistent caching of neutralized headlines (48-hour expiration)
 - Efficient batch processing of multiple headlines in a single API call
 - Simple on/off toggle in the popup
-- Blue dot indicator on neutralized headlines (click to restore original)
+- Blue dot indicator on neutralized headlines
 
 ## Installation
 
@@ -50,7 +50,7 @@ The background script will prefer a key saved through the Options page and fall 
 1. Visit nytimes.com
 2. Headlines are automatically neutralized when the extension is enabled
 3. Toggle on/off using the toolbar popup
-4. Click the blue dot next to any headline to restore the original text
+4. Click any headline to open the article and see the original text
 
 ## Daily API Limit
 

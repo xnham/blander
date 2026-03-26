@@ -35,13 +35,17 @@ All phases complete. This document records the changes made from the original `d
 - Added in-memory `headlineCache` Map pruning inside `cleanupExpiredCache`.
 - Removed redundant indicator cleanup in `restoreOriginalHeadline` (setting `textContent` already destroys child nodes).
 
-## Phase 5: Low Priority
+## Phase 5: UX Refinements
+
+- Removed click-to-restore on the blue indicator dot. Users can click the headline link to see the original text on the article page. The indicator now serves as a passive visual marker with a tooltip ("Neutralized by Blander"). Bulk restore when the extension is toggled off is unchanged.
+
+## Phase 6: Low Priority
 
 - Removed unused `activeTab` permission from manifest.
 - Added `DEBUG` flag (default `false`) in both `content.js` and `background.js`; all verbose `console.log` calls gated behind it while `console.error` remains unconditional.
 - Removed `images/placeholder.txt` (real icon files already present).
 
-## Phase 6: Rebrand, Docs, and Git Init
+## Phase 7: Rebrand, Docs, and Git Init
 
 - Rebranded manifest, popup, and options UI from "Discharge" to "Blander".
 - Created `.gitignore`, `README.md`, and `PLAN.md`.
