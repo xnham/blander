@@ -4,10 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusMessage = document.getElementById('status-message');
   const dailyLimitDisplay = document.getElementById('daily-limit-display');
   
-  // Load current neutralization count
-  loadNeutralizationCount();
+  const apiKeyInput = document.getElementById('api-key-input');
+  const saveKeyButton = document.getElementById('save-key-button');
+  const removeKeyButton = document.getElementById('remove-key-button');
+  const toggleKeyVisibility = document.getElementById('toggle-key-visibility');
+  const apiKeyStatus = document.getElementById('api-key-status');
+  const apiKeyMessage = document.getElementById('api-key-message');
   
-  // Check daily API usage
+  let keyVisible = false;
+  let savedKey = null;
+  
+  loadApiKey();
+  loadNeutralizationCount();
   checkDailyApiUsage();
   
   // Setup refresh button
@@ -23,6 +31,81 @@ document.addEventListener('DOMContentLoaded', () => {
       showStatus('Counter reset successfully!', 'success');
     });
   });
+  
+  // --- API Key Management ---
+  
+  saveKeyButton.addEventListener('click', saveApiKey);
+  
+  apiKeyInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveApiKey();
+  });
+  
+  removeKeyButton.addEventListener('click', () => {
+    chrome.storage.local.remove('anthropicApiKey', () => {
+      savedKey = null;
+      apiKeyInput.value = '';
+      apiKeyInput.type = 'password';
+      keyVisible = false;
+      toggleKeyVisibility.textContent = '👁';
+      removeKeyButton.style.display = 'none';
+      apiKeyStatus.textContent = '';
+      apiKeyStatus.className = 'api-key-status';
+      showApiKeyMessage('API key removed.', 'success');
+    });
+  });
+  
+  toggleKeyVisibility.addEventListener('click', () => {
+    keyVisible = !keyVisible;
+    apiKeyInput.type = keyVisible ? 'text' : 'password';
+    toggleKeyVisibility.textContent = keyVisible ? '🙈' : '👁';
+  });
+  
+  function loadApiKey() {
+    chrome.storage.local.get('anthropicApiKey', (result) => {
+      if (result.anthropicApiKey) {
+        savedKey = result.anthropicApiKey;
+        apiKeyInput.value = savedKey;
+        removeKeyButton.style.display = '';
+        apiKeyStatus.textContent = `Key configured: ${maskKey(savedKey)}`;
+        apiKeyStatus.className = 'api-key-status configured';
+      }
+    });
+  }
+  
+  function saveApiKey() {
+    const key = apiKeyInput.value.trim();
+    
+    if (!key) {
+      showApiKeyMessage('Please enter an API key.', 'error');
+      return;
+    }
+    
+    if (!key.startsWith('sk-ant-')) {
+      showApiKeyMessage('Invalid key format. Anthropic keys start with "sk-ant-".', 'error');
+      return;
+    }
+    
+    chrome.storage.local.set({ anthropicApiKey: key }, () => {
+      savedKey = key;
+      removeKeyButton.style.display = '';
+      apiKeyStatus.textContent = `Key configured: ${maskKey(key)}`;
+      apiKeyStatus.className = 'api-key-status configured';
+      showApiKeyMessage('API key saved successfully!', 'success');
+    });
+  }
+  
+  function maskKey(key) {
+    if (key.length <= 12) return '••••••••';
+    const tail = key.slice(-8);
+    return `sk-ant-${'•'.repeat(8)}${tail}`;
+  }
+  
+  function showApiKeyMessage(message, type) {
+    apiKeyMessage.textContent = message;
+    apiKeyMessage.className = `status-message ${type}`;
+    apiKeyMessage.style.display = 'block';
+    setTimeout(() => { apiKeyMessage.style.display = 'none'; }, 3000);
+  }
   
   // Load neutralization count from storage
   function loadNeutralizationCount() {
