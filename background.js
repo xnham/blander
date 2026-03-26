@@ -149,6 +149,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return;
   }
 
+  if (request.type === 'CHECK_API_KEY') {
+    getApiKey().then(key => {
+      sendResponse({ success: true, hasKey: !!key });
+    });
+    return true;
+  }
+
   if (request.type === 'NEUTRALIZE_TEXT') {
     // Generate a unique key for this text to prevent duplicate processing
     const requestKey = request.text.trim();

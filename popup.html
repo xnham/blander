@@ -121,11 +121,46 @@
       background-color: #e5e5e5;
     }
     
+    .api-key-warning {
+      background-color: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      color: #856404;
+      display: none;
+    }
+    
+    .api-key-warning a {
+      color: #856404;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    
+    .api-key-ok {
+      font-size: 12px;
+      color: #4caf50;
+      margin-bottom: 15px;
+      display: none;
+    }
+    
     .footer {
       margin-top: 15px;
       font-size: 11px;
       color: #999;
       text-align: center;
+    }
+    
+    .footer-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .footer-buttons .button {
+      flex: 1;
     }
   </style>
 </head>
@@ -149,11 +184,18 @@
     <div id="headline-count">Headlines neutralized: 0</div>
   </div>
   
-  <a id="options-button" class="button">View Statistics</a>
+  <div id="api-key-warning" class="api-key-warning">
+    API key not configured. <a id="configure-key-link">Set up now</a>
+  </div>
+  <div id="api-key-ok" class="api-key-ok">API key configured</div>
+  
+  <div class="footer-buttons">
+    <a id="options-button" class="button">Statistics</a>
+    <a id="settings-button" class="button">Settings</a>
+  </div>
   
   <div class="footer">
     <p>Only works on nytimes.com</p>
-    <p>Run build.sh to configure API key</p>
   </div>
   
   <script src="popup.js"></script>

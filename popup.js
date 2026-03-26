@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusText = document.getElementById('status-text');
   const headlineCount = document.getElementById('headline-count');
   const optionsButton = document.getElementById('options-button');
+  const settingsButton = document.getElementById('settings-button');
+  const apiKeyWarning = document.getElementById('api-key-warning');
+  const apiKeyOk = document.getElementById('api-key-ok');
+  const configureKeyLink = document.getElementById('configure-key-link');
   
   // Get initial state
   chrome.storage.sync.get(['enabled', 'neutralizationCount'], (result) => {
@@ -18,6 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     headlineCount.textContent = `Headlines neutralized: ${neutralizationCount}`;
   });
   
+  // Check API key status
+  chrome.runtime.sendMessage({ type: 'CHECK_API_KEY' }, (response) => {
+    if (response?.hasKey) {
+      apiKeyOk.style.display = 'block';
+    } else {
+      apiKeyWarning.style.display = 'block';
+    }
+  });
+  
   // Handle toggle changes
   toggle.addEventListener('change', () => {
     const enabled = toggle.checked;
@@ -30,7 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.runtime.openOptionsPage();
   });
   
-  // Update status display based on extension enabled state
+  settingsButton.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+  
+  configureKeyLink.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+  
   function updateStatusDisplay(enabled) {
     if (enabled) {
       statusIndicator.className = 'status-indicator active';
