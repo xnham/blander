@@ -15,6 +15,12 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 
 ## Installation
 
+### Chrome Web Store
+
+Install Blander directly from the [Chrome Web Store](https://chrome.google.com/webstore) (coming soon). The options page will open automatically on first install so you can enter your API key.
+
+### Manual / Developer Install
+
 1. Clone this repository
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable **Developer mode** in the top right
@@ -56,6 +62,7 @@ Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). 
 
 ## Privacy
 
-- Your API key is stored in `chrome.storage.local` on your device (or in `.env` / `config.js` for developer builds, both gitignored) and never leaves your machine
-- Headlines are sent to the Anthropic Claude API for neutralization
-- No tracking or analytics are collected
+- Your API key is stored in `chrome.storage.local` on your device and never leaves your machine. Developer builds may alternatively use `.env` / `config.js` (both gitignored).
+- Headlines are sent to the Anthropic Claude API for neutralization — no other third-party services are contacted
+- No tracking, analytics, or telemetry of any kind are collected
+- The extension only activates on `nytimes.com`

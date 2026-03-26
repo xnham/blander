@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Blander | News Headline Neutralizer",
-  "version": "1.0",
-  "description": "Neutralizes headlines on nytimes.com",
+  "version": "1.0.0",
+  "description": "Rewrites sensational NYTimes headlines into neutral, factual language using AI. Click the blue dot to see the original.",
   "permissions": ["storage", "alarms"],
   "host_permissions": [
     "*://*.nytimes.com/*",
