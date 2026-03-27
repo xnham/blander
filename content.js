@@ -569,12 +569,16 @@ function updateHeadlineElement(element, neutralText, originalText) {
       element.setAttribute('data-original', originalText);
     }
     
+    const textChanged = normalizeHeadlineText(neutralText) !== normalizeHeadlineText(originalText);
+    
     // Update text
     element.textContent = neutralText;
     element.setAttribute('data-neutralized', 'true');
     
-    // Add indicator
-    addNeutralizedIndicator(element);
+    // Only show indicator when the text was actually rewritten
+    if (textChanged) {
+      addNeutralizedIndicator(element);
+    }
     
   } catch (error) {
     console.error('Error updating headline:', error);

@@ -12,7 +12,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 - Persistent caching of neutralized headlines (48-hour expiration)
 - Efficient batch processing of multiple headlines in a single API call
 - Simple on/off toggle in the popup
-- Blue dot indicator on neutralized headlines
+- Blue dot indicator on headlines whose text was actually rewritten
 
 ## Installation
 
