@@ -6,7 +6,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 
 - Automatically detects and neutralizes headlines on nytimes.com
 - Covers the main story area, NEWS well-section grid, and dynamically loaded content
-- Rewrites headlines in plain, simple language with a dry, absurdist tone while preserving factual information
+- Rewrites headlines at a 3rd-grade reading level with a dry, absurdist tone while preserving factual information
 - Preserves original headline casing, abbreviations, acronyms, and proper nouns
 - Works with dynamic and lazy-rendered content via mutation observer and scroll detection
 - Persistent caching of neutralized headlines (48-hour expiration)
