@@ -357,7 +357,7 @@ async function neutralizeBatch(textArray) {
         model: 'claude-haiku-4-5',
         max_tokens: 2000,
         temperature: 0.3,
-        system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving the key factual information. Make the headline boring. Focus on brevity, clarity and neutrality. Preserve the original headline\'s casing style (e.g. title case, sentence case). Preserve abbreviations, acronyms, and proper nouns exactly. Do not add quotation marks. Respond with ONLY a JSON array of neutralized headline strings, no other text.',
+        system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving the key factual information. Find an absurdist or dry-humor angle — the ideal headline reads as dry, boring, and a tad absurd, like a mundane bureaucratic memo about something dramatic. Focus on brevity, clarity and deadpan tone. Preserve the original headline\'s casing style (e.g. title case, sentence case). Preserve abbreviations, acronyms, and proper nouns exactly. Do not add quotation marks. Respond with ONLY a JSON array of neutralized headline strings, no other text.',
         messages: [
           {
             role: 'user',
@@ -521,7 +521,7 @@ async function neutralizeText(text) {
         model: 'claude-haiku-4-5',
         max_tokens: 100,
         temperature: 0.3,
-        system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving the key factual information. Make the headline boring. Focus on brevity, clarity and neutrality. Preserve the original headline\'s casing style (e.g. title case, sentence case). Preserve abbreviations, acronyms, and proper nouns exactly. Do not add quotation marks. Only respond with the neutralized headline text, nothing else.',
+        system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving the key factual information. Find an absurdist or dry-humor angle — the ideal headline reads as dry, boring, and a tad absurd, like a mundane bureaucratic memo about something dramatic. Focus on brevity, clarity and deadpan tone. Preserve the original headline\'s casing style (e.g. title case, sentence case). Preserve abbreviations, acronyms, and proper nouns exactly. Do not add quotation marks. Only respond with the neutralized headline text, nothing else.',
         messages: [
           {
             role: 'user',

@@ -33,7 +33,7 @@
           model: 'claude-3-haiku-20240307',
           max_tokens: 100,
           temperature: 0.3,
-          system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving all factual information. Focus on brevity, clarity and neutrality. Only respond with the neutralized headline text, nothing else. Do not include quotation marks in your response.',
+          system: 'You are a helpful assistant that neutralizes news headlines. Remove emotional language, sensationalism, and partisan framing while preserving the key factual information. Find an absurdist or dry-humor angle — the ideal headline reads as dry, boring, and a tad absurd, like a mundane bureaucratic memo about something dramatic. Focus on brevity, clarity and deadpan tone. Preserve the original headline\'s casing style (e.g. title case, sentence case). Preserve abbreviations, acronyms, and proper nouns exactly. Do not add quotation marks. Only respond with the neutralized headline text, nothing else.',
           messages: [
             {
               role: 'user',

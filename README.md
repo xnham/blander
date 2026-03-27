@@ -1,12 +1,12 @@
 # Blander — News Headline Neutralizer
 
-A Chrome extension that neutralizes sensationalist headlines on nytimes.com using Anthropic's Claude AI (claude-haiku-4-5). Emotional language and partisan framing are replaced with neutral, factual statements while preserving all original information, casing style, and proper nouns.
+A Chrome extension that neutralizes sensationalist headlines on nytimes.com using Anthropic's Claude AI (claude-haiku-4-5). Emotional language and partisan framing are replaced with dry, deadpan, and slightly absurd rewrites — like mundane bureaucratic memos about dramatic events — while preserving all original information, casing style, and proper nouns.
 
 ## Features
 
 - Automatically detects and neutralizes headlines on nytimes.com
 - Covers the main story area, NEWS well-section grid, and dynamically loaded content
-- Preserves all factual information while removing emotional language
+- Rewrites headlines with a dry, absurdist tone while preserving factual information
 - Preserves original headline casing, abbreviations, acronyms, and proper nouns
 - Works with dynamic and lazy-rendered content via mutation observer and scroll detection
 - Persistent caching of neutralized headlines (48-hour expiration)
