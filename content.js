@@ -313,7 +313,7 @@ function setupObserver() {
               if (node.tagName === 'ARTICLE' || 
                   node.tagName === 'SECTION' || 
                   node.tagName === 'H4' || 
-                  node.className?.includes('css-')) {
+                  (typeof node.className === 'string' && node.className.includes('css-'))) {
                 shouldProcess = true;
                 break;
               }
