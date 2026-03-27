@@ -23,6 +23,7 @@ let extensionAlive = true;
 let restartAttempt = 0;
 let isCacheLoaded = false;
 let ignoringNextCacheChange = false;
+let reloadBannerShown = false;
 
 // NYTimes headline selectors organized by category
 // This makes it easy to experiment with different selector combinations
@@ -484,12 +485,22 @@ async function processQueue() {
         }
       } catch (error) {
         console.error('Error processing queue batch:', error);
-        if (error.message && (
-            error.message.includes('context invalidated') ||
-            error.message.includes('Extension context'))) {
-          extensionAlive = false;
-          attemptRecovery();
+        const msg = error.message || '';
+        const isContextDead = msg.includes('context invalidated') ||
+                              msg.includes('Extension context') ||
+                              !isContextValid();
+        if (isContextDead) {
+          handlePermanentInvalidation();
           return;
+        }
+        // Transient errors (timeout, channel closed) — the service worker
+        // may have restarted. Re-queue the failed items for retry.
+        if (msg.includes('Timeout') || msg.includes('message channel closed')) {
+          uncachedItems.forEach(item => {
+            if (item.element.isConnected && !item.element.hasAttribute('data-neutralized')) {
+              pendingQueue.push(item);
+            }
+          });
         }
       }
       
@@ -710,43 +721,97 @@ function stopObserver() {
   }
 }
 
-// Attempt to recover from context invalidation
-function attemptRecovery() {
-  restartAttempt++;
-  
-  if (restartAttempt <= 3) {
-    if (DEBUG) console.log(`Attempting recovery (${restartAttempt}/3)...`);
-    
-    // Clean up
-    stopObserver();
-    clearInterval(checkInterval);
-    clearInterval(cleanupInterval);
-    
-    // Try to restart
-    setTimeout(() => {
-      extensionAlive = true;
-      initialize();
-    }, 3000 * restartAttempt);
-  } else {
-    console.error('Max recovery attempts reached. Please reload the page.');
-  }
-}
-
-// Check for context invalidation
-function checkContext() {
+// Returns true when chrome.runtime is still connected to a live extension
+function isContextValid() {
   try {
-    // This will throw if context is invalidated
-    chrome.runtime.getURL('');
-    return true;
-  } catch (error) {
-    console.error('Extension context invalidated');
-    extensionAlive = false;
-    attemptRecovery();
+    return !!chrome.runtime?.id;
+  } catch {
     return false;
   }
 }
 
-// Periodically check for context invalidation
+// Attempt to recover — but only when the context is still valid (service
+// worker temporarily down). Permanent context invalidation (extension
+// reloaded/updated) is unrecoverable; show a reload banner instead.
+function attemptRecovery() {
+  if (!isContextValid()) {
+    handlePermanentInvalidation();
+    return;
+  }
+
+  restartAttempt++;
+
+  if (restartAttempt <= 3) {
+    if (DEBUG) console.log(`Attempting recovery (${restartAttempt}/3)...`);
+
+    stopObserver();
+    clearInterval(checkInterval);
+    clearInterval(cleanupInterval);
+
+    setTimeout(() => {
+      if (!isContextValid()) {
+        handlePermanentInvalidation();
+        return;
+      }
+      extensionAlive = true;
+      restartAttempt = 0;
+      initialize();
+    }, 3000 * restartAttempt);
+  } else {
+    handlePermanentInvalidation();
+  }
+}
+
+// Called when the extension context is permanently dead.
+function handlePermanentInvalidation() {
+  extensionAlive = false;
+  stopObserver();
+  clearInterval(checkInterval);
+  clearInterval(cleanupInterval);
+  clearInterval(contextCheckInterval);
+  showReloadBanner();
+}
+
+// Show a small, dismissible banner prompting the user to reload.
+function showReloadBanner() {
+  if (reloadBannerShown) return;
+  reloadBannerShown = true;
+
+  const banner = document.createElement('div');
+  banner.id = 'blander-reload-banner';
+  banner.setAttribute('style', [
+    'position:fixed', 'bottom:16px', 'right:16px', 'z-index:2147483647',
+    'background:#1a1a2e', 'color:#e0e0e0', 'padding:12px 18px',
+    'border-radius:8px', 'font:13px/1.4 -apple-system,sans-serif',
+    'box-shadow:0 4px 16px rgba(0,0,0,.3)', 'display:flex',
+    'align-items:center', 'gap:10px', 'max-width:360px',
+  ].join(';'));
+
+  banner.innerHTML =
+    '<span>Blander was updated. <strong>Reload the page</strong> to resume headline neutralization.</span>' +
+    '<button id="blander-reload-btn" style="background:#61afef;color:#fff;border:none;' +
+    'border-radius:4px;padding:5px 12px;cursor:pointer;font:inherit;white-space:nowrap">Reload</button>' +
+    '<button id="blander-dismiss-btn" style="background:none;color:#888;border:none;' +
+    'cursor:pointer;font-size:16px;padding:0 2px" title="Dismiss">\u00d7</button>';
+
+  document.body.appendChild(banner);
+
+  document.getElementById('blander-reload-btn')
+    .addEventListener('click', () => location.reload());
+  document.getElementById('blander-dismiss-btn')
+    .addEventListener('click', () => banner.remove());
+}
+
+// Periodic context health check — stop the interval once context is dead.
+function checkContext() {
+  if (!isContextValid()) {
+    extensionAlive = false;
+    handlePermanentInvalidation();
+    return false;
+  }
+  return true;
+}
+
 contextCheckInterval = setInterval(checkContext, 30000);
 
 // Start on document load

@@ -57,6 +57,15 @@ The background script will prefer a key saved through the Options page and fall 
 
 The extension enforces a daily limit of **50 API calls** to manage Claude API usage. Each call can neutralize up to 10 headlines via batch processing, and results are cached for 48 hours across tabs and sessions.
 
+## Error Recovery
+
+The extension handles two classes of runtime errors:
+
+- **Transient failures** (service worker timeout, message channel closed) — failed headlines are automatically re-queued for retry on the next processing cycle.
+- **Permanent context invalidation** (extension reloaded or updated while a tab is open) — the content script detects this, stops all processing, and shows a small banner prompting the user to reload the page.
+
+The MV3 service worker is kept alive during active API calls via a periodic keepalive ping, preventing Chrome from terminating it mid-request.
+
 ## Debug Logging
 
 Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). Set it to `true` to enable verbose console logging for development and troubleshooting. Error logging (`console.error`) is always active regardless of the flag.

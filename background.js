@@ -26,6 +26,29 @@ const state = {
 // Global API call throttling
 let apiThrottlePromise = Promise.resolve(); // Initial resolved promise
 
+// --- Service worker keepalive during active processing ---
+// Chrome can terminate a MV3 service worker after ~30 s of inactivity.
+// Periodically calling a lightweight Chrome API resets that timer.
+let keepAliveWhileProcessing = null;
+
+function startProcessingKeepalive() {
+  if (keepAliveWhileProcessing) return;
+  keepAliveWhileProcessing = setInterval(() => {
+    if (state.processingCount <= 0) {
+      stopProcessingKeepalive();
+      return;
+    }
+    chrome.runtime.getPlatformInfo(() => {});
+  }, 20000);
+}
+
+function stopProcessingKeepalive() {
+  if (keepAliveWhileProcessing) {
+    clearInterval(keepAliveWhileProcessing);
+    keepAliveWhileProcessing = null;
+  }
+}
+
 // Initialize default settings when extension is installed
 chrome.runtime.onInstalled.addListener((details) => {
   if (DEBUG) console.log('Extension installed or updated');
@@ -300,8 +323,9 @@ async function neutralizeBatch(textArray) {
     return textArray.map(text => text); // Return unchanged
   }
   
-  // Increment processing counter
+  // Increment processing counter and keep service worker alive
   state.processingCount++;
+  startProcessingKeepalive();
   
   try {
     // Use throttling to prevent rate limiting
@@ -348,8 +372,8 @@ async function neutralizeBatch(textArray) {
       throw new Error(errorData.error?.message || `API error: ${response.status}`);
     }
     
-    // Update counters only on success
     state.processingCount = Math.max(0, state.processingCount - 1);
+    if (state.processingCount <= 0) stopProcessingKeepalive();
     state.dailyApiCalls++;
     scheduleStorageUpdate({ dailyApiCalls: state.dailyApiCalls });
     
@@ -402,8 +426,8 @@ async function neutralizeBatch(textArray) {
     return neutralizedHeadlines;
     
   } catch (error) {
-    // Ensure we decrement on error
     state.processingCount = Math.max(0, state.processingCount - 1);
+    if (state.processingCount <= 0) stopProcessingKeepalive();
     console.error('Error in batch neutralization:', error);
     throw error;
   }
@@ -474,8 +498,9 @@ async function neutralizeText(text) {
   }
 
   try {
-    // Increment the processing counter in memory
+    // Increment the processing counter and keep service worker alive
     state.processingCount++;
+    startProcessingKeepalive();
     
     // Use throttling to prevent rate limiting
     await apiThrottlePromise;
@@ -511,8 +536,8 @@ async function neutralizeText(text) {
       throw new Error(errorData.error?.message || `API error: ${response.status}`);
     }
 
-    // Update counters only on success
     state.processingCount = Math.max(0, state.processingCount - 1);
+    if (state.processingCount <= 0) stopProcessingKeepalive();
     state.dailyApiCalls++;
     scheduleStorageUpdate({ dailyApiCalls: state.dailyApiCalls });
 
@@ -541,8 +566,8 @@ async function neutralizeText(text) {
     
     return neutralizedText;
   } catch (error) {
-    // Ensure we decrement on error
     state.processingCount = Math.max(0, state.processingCount - 1);
+    if (state.processingCount <= 0) stopProcessingKeepalive();
     console.error('Error calling Claude API:', error);
     throw error;
   }
