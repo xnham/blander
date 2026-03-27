@@ -15,6 +15,7 @@ let checkInterval = null;
 let cleanupInterval = null;
 let contextCheckInterval = null;
 let debounceTimer = null;
+let scrollDebounceTimer = null;
 let pendingQueue = [];
 let pendingTexts = new Set();
 let queueProcessing = false;
@@ -47,6 +48,12 @@ const PATTERN_SELECTORS = [
   'div[class*="egyhip"] p',         // Any paragraph in div with egyhip in class name
   'a[href] p',                      // Any paragraph inside a link
   'p.css-tren9k',                   // This specific headline format
+];
+
+// Well-section selectors (NEWS grid with category sub-sections)
+const WELL_SECTION_SELECTORS = [
+  '[data-testid="well-section"] article a[href] p',
+  '[data-testid="well-section"] article p',
 ];
 
 // Heading-based selectors
@@ -96,6 +103,7 @@ const GENERIC_SELECTORS = [
 // NYTimes headline selectors - target headlines but exclude section titles
 const HEADLINE_SELECTORS = [
   ...PATTERN_SELECTORS,             // New approach - pattern-based selectors
+  ...WELL_SECTION_SELECTORS,        // NEWS grid well-section headlines
   // Comment out other categories to disable them
   // ...SPECIFIC_CLASS_SELECTORS,   // Original approach - specific CSS classes
   // ...HEADING_SELECTORS,          // Heading selectors
@@ -130,6 +138,7 @@ function initialize() {
         setTimeout(() => {
           if (extensionAlive) {
             setupObserver();
+            setupScrollListener();
             startPeriodicCheck();
             scanForHeadlines();
             if (cleanupInterval) clearInterval(cleanupInterval);
@@ -333,6 +342,26 @@ function setupObserver() {
   }
 }
 
+// Re-scan when user scrolls to reveal lazy-rendered sections
+function setupScrollListener() {
+  window.addEventListener('scroll', () => {
+    if (!extensionAlive || !isEnabled || !isCacheLoaded) return;
+    
+    clearTimeout(scrollDebounceTimer);
+    scrollDebounceTimer = setTimeout(() => {
+      applyAllCachedHeadlines();
+      scanForHeadlines();
+    }, 300);
+  }, { passive: true });
+}
+
+// Check if an element is likely visible, tolerating content-visibility:auto
+function isElementVisible(el) {
+  if (el.offsetParent !== null) return true;
+  const rect = el.getBoundingClientRect();
+  return rect.height > 0 && rect.width > 0;
+}
+
 // Scan for headlines, apply cached ones, and queue uncached for API processing
 function scanForHeadlines() {
   if (!extensionAlive || !isEnabled || !isCacheLoaded) return;
@@ -342,12 +371,15 @@ function scanForHeadlines() {
     
     const headlineElements = [];
     
+    const seen = new Set();
     HEADLINE_SELECTORS.forEach(selector => {
       document.querySelectorAll(selector).forEach(el => {
-        if (el.offsetParent !== null && 
+        if (!seen.has(el) &&
+            isElementVisible(el) &&
             el.textContent.trim().length >= 15 && 
             !el.querySelector('button, input') &&
             !el.hasAttribute('data-neutralized')) {
+          seen.add(el);
           headlineElements.push(el);
         }
       });
@@ -731,8 +763,7 @@ function applyAllCachedHeadlines() {
   
   HEADLINE_SELECTORS.forEach(selector => {
     document.querySelectorAll(selector).forEach(el => {
-      // Only include visible elements with sufficient text that haven't been neutralized
-      if (el.offsetParent !== null && 
+      if (isElementVisible(el) &&
           el.textContent.trim().length >= 15 && 
           !el.querySelector('button, input') &&
           !el.hasAttribute('data-neutralized')) {
