@@ -14,14 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let keyVisible = false;
   let savedKey = null;
   
+  const dailyCostDisplay = document.getElementById('daily-cost');
+  const totalCostDisplay = document.getElementById('total-cost');
+  const dailyTokensDisplay = document.getElementById('daily-tokens');
+  
   loadApiKey();
   loadNeutralizationCount();
   checkDailyApiUsage();
+  loadCostEstimates();
   
   // Setup refresh button
   document.getElementById('refresh-button').addEventListener('click', () => {
     loadNeutralizationCount();
     checkDailyApiUsage();
+    loadCostEstimates();
   });
   
   // Reset counter
@@ -138,6 +144,38 @@ document.addEventListener('DOMContentLoaded', () => {
         <div>Resets in: <strong>${hoursUntilReset}h ${minutesUntilReset}m</strong></div>
       `;
     });
+  }
+  
+  // Claude Haiku 4.5 pricing: $1/MTok input, $5/MTok output
+  function estimateCost(inputTokens, outputTokens) {
+    return (inputTokens / 1_000_000) * 1 + (outputTokens / 1_000_000) * 5;
+  }
+  
+  function formatCost(dollars) {
+    if (dollars < 0.01) return '$' + dollars.toFixed(4);
+    return '$' + dollars.toFixed(2);
+  }
+  
+  function formatTokens(count) {
+    if (count >= 1_000_000) return (count / 1_000_000).toFixed(1) + 'M';
+    if (count >= 1_000) return (count / 1_000).toFixed(1) + 'K';
+    return count.toLocaleString();
+  }
+  
+  function loadCostEstimates() {
+    chrome.storage.local.get(
+      ['totalInputTokens', 'totalOutputTokens', 'dailyInputTokens', 'dailyOutputTokens'],
+      (result) => {
+        const dailyIn = result.dailyInputTokens || 0;
+        const dailyOut = result.dailyOutputTokens || 0;
+        const totalIn = result.totalInputTokens || 0;
+        const totalOut = result.totalOutputTokens || 0;
+        
+        dailyCostDisplay.textContent = formatCost(estimateCost(dailyIn, dailyOut));
+        totalCostDisplay.textContent = formatCost(estimateCost(totalIn, totalOut));
+        dailyTokensDisplay.textContent = `${formatTokens(dailyIn)} in / ${formatTokens(dailyOut)} out`;
+      }
+    );
   }
   
   // Show status message

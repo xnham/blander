@@ -60,14 +60,21 @@ chrome.runtime.onInstalled.addListener((details) => {
   });
   
   // Use local storage for frequently changing counters
-  chrome.storage.local.set({
+  const localDefaults = {
     dailyApiCalls: 0,
+    dailyInputTokens: 0,
+    dailyOutputTokens: 0,
     lastResetDate: new Date().toISOString(),
-    headlineCache: {} // Initialize empty cache
-  });
+    headlineCache: {}
+  };
   
   if (details.reason === 'install') {
+    localDefaults.totalInputTokens = 0;
+    localDefaults.totalOutputTokens = 0;
+    chrome.storage.local.set(localDefaults);
     chrome.runtime.openOptionsPage();
+  } else {
+    chrome.storage.local.set(localDefaults);
   }
   
   // Start the keepalive mechanism to prevent service worker termination
@@ -114,8 +121,30 @@ function resetDailyCounter() {
   // Reset counters in storage
   chrome.storage.local.set({
     dailyApiCalls: 0,
+    dailyInputTokens: 0,
+    dailyOutputTokens: 0,
     lastResetDate: new Date().toISOString()
   });
+}
+
+// Accumulate token usage from an API response's usage object
+function trackTokenUsage(usage) {
+  if (!usage) return;
+  const input = usage.input_tokens || 0;
+  const output = usage.output_tokens || 0;
+  if (input === 0 && output === 0) return;
+
+  chrome.storage.local.get(
+    ['totalInputTokens', 'totalOutputTokens', 'dailyInputTokens', 'dailyOutputTokens'],
+    (result) => {
+      chrome.storage.local.set({
+        totalInputTokens: (result.totalInputTokens || 0) + input,
+        totalOutputTokens: (result.totalOutputTokens || 0) + output,
+        dailyInputTokens: (result.dailyInputTokens || 0) + input,
+        dailyOutputTokens: (result.dailyOutputTokens || 0) + output
+      });
+    }
+  );
 }
 
 // Throttle storage updates to avoid hitting Chrome's rate limits
@@ -378,6 +407,7 @@ async function neutralizeBatch(textArray) {
     scheduleStorageUpdate({ dailyApiCalls: state.dailyApiCalls });
     
     const data = await response.json();
+    trackTokenUsage(data.usage);
     let neutralizedText = data.content[0].text.trim();
     
     // Try JSON parsing first, fall back to numbered-list regex
@@ -542,6 +572,7 @@ async function neutralizeText(text) {
     scheduleStorageUpdate({ dailyApiCalls: state.dailyApiCalls });
 
     const data = await response.json();
+    trackTokenUsage(data.usage);
     let neutralizedText = data.content[0].text;
     
     // Strip any quotation marks from the beginning and end of the text

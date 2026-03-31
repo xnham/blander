@@ -57,6 +57,10 @@ The background script will prefer a key saved through the Options page and fall 
 
 The extension enforces a daily limit of **50 API calls** to manage Claude API usage. Each call can neutralize up to 10 headlines via batch processing, and results are cached for 48 hours across tabs and sessions.
 
+## Cost Tracking
+
+The Options page displays estimated API costs based on actual token usage reported by the Anthropic API. Both daily and all-time totals are shown, along with a token-level breakdown. Cost estimates use Claude Haiku 4.5 pricing ($1/MTok input, $5/MTok output). Daily token counters reset alongside the daily API call counter at midnight.
+
 ## Error Recovery
 
 The extension handles two classes of runtime errors:
