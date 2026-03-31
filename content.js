@@ -24,6 +24,9 @@ let restartAttempt = 0;
 let isCacheLoaded = false;
 let ignoringNextCacheChange = false;
 let reloadBannerShown = false;
+let pendingCacheWrites = new Map();
+let cacheWriteTimer = null;
+let cacheFlushInProgress = false;
 
 // NYTimes headline selectors organized by category
 // This makes it easy to experiment with different selector combinations
@@ -203,10 +206,10 @@ function loadHeadlineCache() {
     const storedCache = result.headlineCache || {};
     const now = Date.now();
     
-    // Load valid entries into memory cache
+    // Load valid entries into memory cache (normalize keys for consistent lookup)
     Object.entries(storedCache).forEach(([originalText, entry]) => {
       if (entry && entry.expiry > now) {
-        headlineCache.set(originalText, entry.neutralText);
+        headlineCache.set(normalizeHeadlineText(originalText), entry.neutralText);
       }
     });
     
@@ -255,26 +258,65 @@ function cleanupExpiredCache() {
   });
 }
 
-// Add or update a headline in the cache
+// Queue a cache update. Writes are debounced so that rapid-fire calls
+// (e.g. a batch of 10 headlines) produce a single read-modify-write
+// against chrome.storage.local instead of 10 concurrent ones that
+// clobber each other.
 function updateHeadlineCache(originalText, neutralText) {
-  // Add to in-memory cache
-  headlineCache.set(originalText, neutralText);
-  
-  // Add to persistent storage with expiry
+  const key = normalizeHeadlineText(originalText);
+  headlineCache.set(key, neutralText);
+
+  pendingCacheWrites.set(key, {
+    neutralText,
+    expiry: Date.now() + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000),
+    timestamp: Date.now()
+  });
+
+  if (!cacheFlushInProgress) {
+    clearTimeout(cacheWriteTimer);
+    cacheWriteTimer = setTimeout(flushPendingCacheWrites, 500);
+  }
+}
+
+function flushPendingCacheWrites() {
+  if (pendingCacheWrites.size === 0 || cacheFlushInProgress) return;
+
+  cacheFlushInProgress = true;
+  const writes = pendingCacheWrites;
+  pendingCacheWrites = new Map();
+
   chrome.storage.local.get(['headlineCache'], (result) => {
+    if (chrome.runtime.lastError) {
+      for (const [k, v] of writes) {
+        if (!pendingCacheWrites.has(k)) pendingCacheWrites.set(k, v);
+      }
+      cacheFlushInProgress = false;
+      cacheWriteTimer = setTimeout(flushPendingCacheWrites, 1000);
+      return;
+    }
+
     const storedCache = result.headlineCache || {};
-    const expiry = Date.now() + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
-    
-    // Update the stored cache
-    storedCache[originalText] = {
-      neutralText,
-      expiry,
-      timestamp: Date.now()
-    };
-    
-    // Save back to storage
+
+    for (const [key, entry] of writes) {
+      storedCache[key] = entry;
+    }
+
+    // Include any writes that arrived during the async read
+    if (pendingCacheWrites.size > 0) {
+      for (const [key, entry] of pendingCacheWrites) {
+        storedCache[key] = entry;
+      }
+      pendingCacheWrites = new Map();
+    }
+
     ignoringNextCacheChange = true;
-    chrome.storage.local.set({ headlineCache: storedCache });
+    chrome.storage.local.set({ headlineCache: storedCache }, () => {
+      cacheFlushInProgress = false;
+      if (pendingCacheWrites.size > 0) {
+        clearTimeout(cacheWriteTimer);
+        cacheWriteTimer = setTimeout(flushPendingCacheWrites, 100);
+      }
+    });
   });
 }
 
@@ -284,8 +326,7 @@ function mergeExternalCacheChanges(newCache) {
   
   Object.entries(newCache).forEach(([originalText, entry]) => {
     if (entry && entry.expiry > Date.now()) {
-      // Update in-memory cache with external changes
-      headlineCache.set(originalText, entry.neutralText);
+      headlineCache.set(normalizeHeadlineText(originalText), entry.neutralText);
     }
   });
 }

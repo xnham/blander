@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Blander | News Headline Neutralizer",
-  "version": "1.0.0",
-  "description": "Rewrites NYTimes headlines into neutral, factual language.",
+  "version": "1.0.1",
+  "description": "This extension makes NYTimes headlines more bland.",
   "permissions": ["storage", "alarms"],
   "host_permissions": [
     "*://*.nytimes.com/*",
