@@ -218,13 +218,14 @@ function loadHeadlineCache() {
       cleanupExpiredCache();
     }
     
-    // Apply all cached headlines immediately with multiple retries
+    // Apply cached headlines and scan for uncached ones that need API calls.
+    // scanForHeadlines() must run here because the initial scan (fired 200ms
+    // after initialize) may have exited early if the cache wasn't loaded yet.
     if (isEnabled) {
-      // Attempt multiple times to catch headlines as they load
       setTimeout(() => applyAllCachedHeadlines(), 100);
-      setTimeout(() => applyAllCachedHeadlines(), 500);
-      setTimeout(() => applyAllCachedHeadlines(), 1500);
-      setTimeout(() => applyAllCachedHeadlines(), 3000);
+      setTimeout(() => { applyAllCachedHeadlines(); scanForHeadlines(); }, 500);
+      setTimeout(() => { applyAllCachedHeadlines(); scanForHeadlines(); }, 1500);
+      setTimeout(() => { applyAllCachedHeadlines(); scanForHeadlines(); }, 3000);
     }
   });
 }
