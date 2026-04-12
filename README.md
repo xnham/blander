@@ -20,6 +20,8 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 
 Install Blander directly from the [Chrome Web Store](https://chrome.google.com/webstore) (coming soon). The options page will open automatically on first install so you can enter your API key.
 
+Listing graphics (marquee tile, small promo tile, and screenshot) live under `images/store/`.
+
 ### Manual / Developer Install
 
 1. Clone this repository
