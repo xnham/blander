@@ -511,6 +511,22 @@ function getVideoFeedHeadlineElements() {
   return out;
 }
 
+// Homepage "Games" / daily puzzles package — exclude from neutralization (title + promos share story-wrapper patterns).
+function isGamesPackageSection(el) {
+  let node = el;
+  while (node && node !== document.body) {
+    const pkg = node.querySelector('.package-title-wrapper');
+    if (pkg) {
+      const span = pkg.querySelector('h2 span');
+      if (span && span.textContent.trim() === 'Games') {
+        return true;
+      }
+    }
+    node = node.parentElement;
+  }
+  return false;
+}
+
 function minHeadlineLengthForElement(el) {
   if (isEgyhipHeadlineElement(el)) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('[data-testid="well-section"]')) return MIN_HEADLINE_LEN_SPECIFIC;
@@ -534,6 +550,7 @@ function scanForHeadlines() {
       document.querySelectorAll(selector).forEach(el => {
         if (!seen.has(el) &&
             isElementVisible(el) &&
+            !isGamesPackageSection(el) &&
             el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
             !el.querySelector('button, input') &&
             !el.hasAttribute('data-neutralized')) {
@@ -546,6 +563,7 @@ function scanForHeadlines() {
     getVideoFeedHeadlineElements().forEach(el => {
       if (!seen.has(el) &&
           isElementVisible(el) &&
+          !isGamesPackageSection(el) &&
           el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
           !el.querySelector('button, input') &&
           !el.hasAttribute('data-neutralized')) {
@@ -1007,6 +1025,7 @@ function applyAllCachedHeadlines() {
   HEADLINE_SELECTORS.forEach(selector => {
     document.querySelectorAll(selector).forEach(el => {
       if (isElementVisible(el) &&
+          !isGamesPackageSection(el) &&
           el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
           !el.querySelector('button, input') &&
           !el.hasAttribute('data-neutralized')) {
@@ -1021,6 +1040,7 @@ function applyAllCachedHeadlines() {
 
   getVideoFeedHeadlineElements().forEach(el => {
     if (isElementVisible(el) &&
+        !isGamesPackageSection(el) &&
         el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
         !el.querySelector('button, input') &&
         !el.hasAttribute('data-neutralized')) {
