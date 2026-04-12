@@ -5,7 +5,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 ## Features
 
 - Automatically detects and neutralizes headlines on the **nytimes.com homepage** only (not article pages or other URLs)
-- Covers the main story area, NEWS well-section grid, the **Watch Today's Videos** carousel (`video-feed-scroll` / `feed-item`), **egyhip**-styled headline paragraphs (including when `egyhip` appears on the `p` but not the parent wrapper), and dynamically loaded content
+- Covers the main story area, NEWS well-section grid, the **Watch Today's Videos** carousel (headlines are resolved with **shadow-DOM traversal** — `data-testid` lives under Betamax custom elements, so plain `querySelector` cannot see them), **egyhip**-styled headline paragraphs (including when `egyhip` appears on the `p` but not the parent wrapper), and dynamically loaded content
 - Rewrites headlines at a 3rd-grade reading level with a dry, absurdist tone while preserving factual information
 - Preserves original headline casing (with deterministic post-processing when the model drifts), abbreviations, acronyms, and proper nouns
 - Works with dynamic and lazy-rendered content via mutation observer and scroll detection

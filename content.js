@@ -61,10 +61,8 @@ const WELL_SECTION_SELECTORS = [
   '[data-testid="well-section"] article p',
 ];
 
-// "Watch Today's Videos" horizontal carousel (Betamax pool — stable test ids)
-const VIDEO_FEED_SELECTORS = [
-  '[data-testid="video-feed-scroll"] [data-testid="feed-item"] p',
-];
+// "Watch Today's Videos" — collected via getVideoFeedHeadlineElements() because
+// feed items often live under custom elements' shadow roots; querySelectorAll does not pierce shadow DOM.
 
 // Heading-based selectors
 const HEADING_SELECTORS = [
@@ -114,7 +112,7 @@ const GENERIC_SELECTORS = [
 const HEADLINE_SELECTORS = [
   ...PATTERN_SELECTORS,             // New approach - pattern-based selectors
   ...WELL_SECTION_SELECTORS,        // NEWS grid well-section headlines
-  ...VIDEO_FEED_SELECTORS,         // Watch Today's Videos carousel
+  // Watch Today's Videos: merged in scanForHeadlines / applyAllCachedHeadlines via getVideoFeedHeadlineElements()
   // Comment out other categories to disable them
   // ...SPECIFIC_CLASS_SELECTORS,   // Original approach - specific CSS classes
   // ...HEADING_SELECTORS,          // Heading selectors
@@ -425,10 +423,99 @@ function isEgyhipHeadlineElement(el) {
   return !!el.closest('div[class*="egyhip"]');
 }
 
+// Betamax video carousel: nodes may be inside open shadow roots (querySelectorAll cannot see them).
+function findElementByDataTestIdDeep(testId) {
+  let found = null;
+  function visit(node) {
+    if (found || !node) return;
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.getAttribute?.('data-testid') === testId) {
+        found = node;
+        return;
+      }
+      for (const child of node.children) visit(child);
+      if (node.shadowRoot) visit(node.shadowRoot);
+    } else if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      for (const child of node.children) visit(child);
+    }
+  }
+  visit(document.body);
+  return found;
+}
+
+function composedPathContains(ancestor, el) {
+  let n = el;
+  while (n) {
+    if (n === ancestor) return true;
+    const root = n.getRootNode();
+    if (root === document) {
+      n = n.parentNode;
+    } else if (root instanceof ShadowRoot) {
+      n = root.host;
+    } else {
+      break;
+    }
+  }
+  return false;
+}
+
+function isVideoFeedHeadlineParagraph(el) {
+  if (!el || el.tagName !== 'P') return false;
+  const fi = el.closest('[data-testid="feed-item"]');
+  if (!fi) return false;
+  const scroll = findElementByDataTestIdDeep('video-feed-scroll');
+  return !!(scroll && composedPathContains(scroll, fi));
+}
+
+function findHeadlineParagraphInFeedItem(feedItem) {
+  let found = null;
+  function walk(node) {
+    if (found || !node) return;
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const cls = typeof node.className === 'string' ? node.className : '';
+      if (cls.includes('headline-container')) {
+        const p = node.querySelector('p');
+        if (p) {
+          found = p;
+          return;
+        }
+      }
+      for (const child of node.children) walk(child);
+      if (node.shadowRoot) walk(node.shadowRoot);
+    } else if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      for (const child of node.children) walk(child);
+    }
+  }
+  walk(feedItem);
+  return found;
+}
+
+function getVideoFeedHeadlineElements() {
+  const scroll = findElementByDataTestIdDeep('video-feed-scroll');
+  if (!scroll) return [];
+  const out = [];
+  function visit(node) {
+    if (!node) return;
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      if (node.getAttribute?.('data-testid') === 'feed-item') {
+        const p = findHeadlineParagraphInFeedItem(node);
+        if (p) out.push(p);
+      }
+      for (const child of node.children) visit(child);
+      if (node.shadowRoot) visit(node.shadowRoot);
+    } else if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      for (const child of node.children) visit(child);
+    }
+  }
+  visit(scroll);
+  return out;
+}
+
 function minHeadlineLengthForElement(el) {
   if (isEgyhipHeadlineElement(el)) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('[data-testid="well-section"]')) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('[data-testid="video-feed-scroll"]')) return MIN_HEADLINE_LEN_SPECIFIC;
+  if (isVideoFeedHeadlineParagraph(el)) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('section.story-wrapper')) return MIN_HEADLINE_LEN_SPECIFIC;
   return MIN_HEADLINE_LEN_BROAD;
 }
@@ -455,7 +542,18 @@ function scanForHeadlines() {
         }
       });
     });
-    
+
+    getVideoFeedHeadlineElements().forEach(el => {
+      if (!seen.has(el) &&
+          isElementVisible(el) &&
+          el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
+          !el.querySelector('button, input') &&
+          !el.hasAttribute('data-neutralized')) {
+        seen.add(el);
+        headlineElements.push(el);
+      }
+    });
+
     if (DEBUG) console.log(`Found ${headlineElements.length} headlines to process`);
     if (headlineElements.length === 0) return;
     
@@ -919,6 +1017,18 @@ function applyAllCachedHeadlines() {
         }
       }
     });
+  });
+
+  getVideoFeedHeadlineElements().forEach(el => {
+    if (isElementVisible(el) &&
+        el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
+        !el.querySelector('button, input') &&
+        !el.hasAttribute('data-neutralized')) {
+      const text = el.textContent.trim();
+      if (findCachedHeadline(text)) {
+        cachedElements.push({ element: el, text });
+      }
+    }
   });
   
   if (cachedElements.length > 0) {
