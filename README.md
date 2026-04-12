@@ -4,7 +4,7 @@ A Chrome extension that neutralizes sensationalist headlines on nytimes.com usin
 
 ## Features
 
-- Automatically detects and neutralizes headlines on nytimes.com (homepage, section fronts, and other pages that use the same headline patterns)
+- Automatically detects and neutralizes headlines on the **nytimes.com homepage** only (not article pages or other URLs)
 - Covers the main story area, NEWS well-section grid, **egyhip**-styled headline paragraphs (including when `egyhip` appears on the `p` but not the parent wrapper), and dynamically loaded content
 - Rewrites headlines at a 3rd-grade reading level with a dry, absurdist tone while preserving factual information
 - Preserves original headline casing (with deterministic post-processing when the model drifts), abbreviations, acronyms, and proper nouns
@@ -48,8 +48,8 @@ The background script will prefer a key saved through the Options page and fall 
 
 ## Usage
 
-1. Visit nytimes.com
-2. Headlines are automatically neutralized when the extension is enabled
+1. Open the nytimes.com homepage (`/` — not individual articles)
+2. Headlines on that page are automatically neutralized when the extension is enabled
 3. Toggle on/off using the toolbar popup
 4. Click any headline to open the article and see the original text
 
@@ -79,4 +79,4 @@ Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). 
 - Your API key is stored in `chrome.storage.local` on your device and never leaves your machine. Developer builds may alternatively use `.env` / `config.js` (both gitignored).
 - Headlines are sent to the Anthropic Claude API for neutralization — no other third-party services are contacted
 - No tracking, analytics, or telemetry of any kind are collected
-- The extension only activates on `nytimes.com`
+- The content script runs on `nytimes.com`, but headline rewriting runs only on the homepage (`/`)

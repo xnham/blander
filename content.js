@@ -122,7 +122,9 @@ const HEADLINE_SELECTORS = [
 // Initialize when the document is ready
 function initialize() {
   if (!extensionAlive) return;
-  
+  // Homepage only — leave article pages, section fronts, and other paths unchanged
+  if (window.location.pathname !== '/') return;
+
   try {
     if (DEBUG) console.log('Initializing Blander extension');
     
