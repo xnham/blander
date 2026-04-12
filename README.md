@@ -76,6 +76,18 @@ The MV3 service worker is kept alive during active API calls via a periodic keep
 
 Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). Set it to `true` to enable verbose console logging for development and troubleshooting. Error logging (`console.error`) is always active regardless of the flag.
 
+## Packaging (`blander-extension.zip`)
+
+To rebuild the loadable archive from the project root (manifest, scripts, options/popup UI, toolbar icons, and `config.js` if you use a developer fallback key):
+
+```bash
+zip -r blander-extension.zip manifest.json background.js casing.js content.js config.js \
+  popup.html popup.js options.html options.js \
+  images/bored16.png images/bored48.png images/bored128.png
+```
+
+Omit `config.js` from the command if the zip is for sharing or store submission; users set the API key in **Options** instead.
+
 ## Privacy
 
 - Your API key is stored in `chrome.storage.local` on your device and never leaves your machine. Developer builds may alternatively use `.env` / `config.js` (both gitignored).
