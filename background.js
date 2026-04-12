@@ -1,5 +1,7 @@
 // Background Script for Blander — News Headline Neutralizer
 
+importScripts('casing.js');
+
 const DEBUG = false;
 
 async function getApiKey() {
@@ -453,7 +455,9 @@ async function neutralizeBatch(textArray) {
     
     if (DEBUG) console.log('Batch API call successful, neutralized', neutralizedHeadlines.length, 'headlines');
     
-    return neutralizedHeadlines;
+    return neutralizedHeadlines.map((h, i) =>
+      applyCasingFromOriginal(textArray[i], h)
+    );
     
   } catch (error) {
     state.processingCount = Math.max(0, state.processingCount - 1);
@@ -595,7 +599,7 @@ async function neutralizeText(text) {
     
     if (DEBUG) console.log('API call attempt for text:', text.substring(0, 30) + '...');
     
-    return neutralizedText;
+    return applyCasingFromOriginal(text, neutralizedText);
   } catch (error) {
     state.processingCount = Math.max(0, state.processingCount - 1);
     if (state.processingCount <= 0) stopProcessingKeepalive();

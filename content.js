@@ -622,10 +622,16 @@ function updateHeadlineElement(element, neutralText, originalText) {
       element.setAttribute('data-original', originalText);
     }
     
-    const textChanged = normalizeHeadlineText(neutralText) !== normalizeHeadlineText(originalText);
+    const displayText =
+      typeof applyCasingFromOriginal === 'function'
+        ? applyCasingFromOriginal(originalText, neutralText)
+        : neutralText;
+
+    const textChanged =
+      normalizeHeadlineText(displayText) !== normalizeHeadlineText(originalText);
     
     // Update text
-    element.textContent = neutralText;
+    element.textContent = displayText;
     element.setAttribute('data-neutralized', 'true');
     
     // Only show indicator when the text was actually rewritten
