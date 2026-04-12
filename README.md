@@ -62,9 +62,9 @@ The MV3 service worker is kept alive during active API calls via a periodic keep
 
 Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). Set it to `true` to enable verbose console logging for development and troubleshooting. Error logging (`console.error`) is always active regardless of the flag.
 
-## Packaging (`blander-extension.zip`)
+## Chrome Web Store package (`blander-extension.zip`)
 
-To rebuild the loadable archive from the project root:
+For store submission, build the zip locally from the project root (it is gitignored and not pushed to GitHub):
 
 ```bash
 zip -r blander-extension.zip manifest.json background.js casing.js content.js \
@@ -72,7 +72,7 @@ zip -r blander-extension.zip manifest.json background.js casing.js content.js \
   images/bored16.png images/bored48.png images/bored128.png
 ```
 
-Users set the API key in **Options** after install.
+Upload that file in the Chrome Web Store Developer Dashboard. End users set the API key in **Options** after install.
 
 ## Privacy
 
