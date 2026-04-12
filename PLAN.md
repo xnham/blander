@@ -6,7 +6,7 @@ All phases complete. This document records the changes made from the original `d
 
 ## Phase 1: Critical Fixes
 
-- **1a**: API key secured via `.env` + `build.sh` + `config.js` (gitignored). `background.js` uses `importScripts('config.js')`.
+- **1a**: API key stored via the Options page in `chrome.storage.local` (replacing earlier `.env` / `config.js` ideas that were never wired into the service worker).
 - **1b**: Deleted `toTitleCase` function and both call sites. Updated both Claude system prompts to preserve original casing style, abbreviations, acronyms, and proper nouns.
 - **1c**: Fixed double-decrement of `processingCount` and erroneous `dailyApiCalls` increment on error. Moved counter updates to success-only path in both `neutralizeBatch` and `neutralizeText`. Fixed misleading comment on `MAX_DAILY_API_CALLS`.
 - **1d**: Upgraded Claude model from `claude-3-haiku-20240307` to `claude-haiku-4-5` in both API calls.

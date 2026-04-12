@@ -34,20 +34,6 @@ Listing graphics (marquee tile, small promo tile, and screenshot) live under `im
 
 Open the extension's **Options page** (right-click the toolbar icon → Options) and enter your Anthropic API key. The key is stored locally via `chrome.storage.local` and never leaves your device.
 
-### Developer Setup (alternative)
-
-1. Create a `.env` file in the project root:
-   ```
-   ANTHROPIC_API_KEY=sk-ant-your-key-here
-   ```
-2. Run the build script to generate `config.js`:
-   ```bash
-   ./build.sh
-   ```
-3. Reload the extension in `chrome://extensions/`
-
-The background script will prefer a key saved through the Options page and fall back to `config.js` if none is found.
-
 ## Usage
 
 1. Open the nytimes.com homepage (`/` — not individual articles)
@@ -78,19 +64,19 @@ Both `content.js` and `background.js` include a `DEBUG` flag (default `false`). 
 
 ## Packaging (`blander-extension.zip`)
 
-To rebuild the loadable archive from the project root (manifest, scripts, options/popup UI, toolbar icons, and `config.js` if you use a developer fallback key):
+To rebuild the loadable archive from the project root:
 
 ```bash
-zip -r blander-extension.zip manifest.json background.js casing.js content.js config.js \
+zip -r blander-extension.zip manifest.json background.js casing.js content.js \
   popup.html popup.js options.html options.js \
   images/bored16.png images/bored48.png images/bored128.png
 ```
 
-Omit `config.js` from the command if the zip is for sharing or store submission; users set the API key in **Options** instead.
+Users set the API key in **Options** after install.
 
 ## Privacy
 
-- Your API key is stored in `chrome.storage.local` on your device and never leaves your machine. Developer builds may alternatively use `.env` / `config.js` (both gitignored).
+- Your API key is stored in `chrome.storage.local` on your device and never leaves your machine.
 - Headlines are sent to the Anthropic Claude API for neutralization — no other third-party services are contacted
 - No tracking, analytics, or telemetry of any kind are collected
 - The content script runs on `nytimes.com`, but headline rewriting runs only on the homepage (`/`)

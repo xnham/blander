@@ -6,8 +6,7 @@ const DEBUG = false;
 
 async function getApiKey() {
   const { anthropicApiKey } = await chrome.storage.local.get('anthropicApiKey');
-  if (anthropicApiKey) return anthropicApiKey;
-  try { return CONFIG?.ANTHROPIC_API_KEY || null; } catch { return null; }
+  return anthropicApiKey || null;
 }
 
 const MAX_DAILY_API_CALLS = 50;

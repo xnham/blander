@@ -5,7 +5,7 @@
   console.log('🔍 Anthropic API Diagnostic');
   console.log('============================');
   
-  // Get API key from config.js (loaded by the service worker)
+  // Get API key from the background script (same source as the extension: chrome.storage.local)
   async function getApiKey() {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage({ action: 'getApiKey' }, (response) => {
