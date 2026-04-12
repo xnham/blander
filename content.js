@@ -49,7 +49,8 @@ const PATTERN_SELECTORS = [
   'p.indicate-hover',
   'section.story-wrapper p:first-of-type',
   '.css-xdandi > p',
-  'div[class*="egyhip"] p',         // Any paragraph in div with egyhip in class name
+  'div[class*="egyhip"] p',         // Paragraph inside a wrapper whose class includes egyhip
+  'p[class*="egyhip"]',             // Paragraph itself carries egyhip (parent may not)
   'a[href] p',                      // Any paragraph inside a link
   'p.css-tren9k',                   // This specific headline format
 ];
@@ -120,7 +121,6 @@ const HEADLINE_SELECTORS = [
 
 // Initialize when the document is ready
 function initialize() {
-  if (window.location.pathname !== '/') return;
   if (!extensionAlive) return;
   
   try {
@@ -405,6 +405,25 @@ function isElementVisible(el) {
   return rect.height > 0 && rect.width > 0;
 }
 
+// Minimum headline length for the broad `a[href] p` selector (avoids nav/UI noise).
+const MIN_HEADLINE_LEN_BROAD = 15;
+// Lower threshold for egyhip / well-section / story patterns (short headlines still count).
+const MIN_HEADLINE_LEN_SPECIFIC = 10;
+
+function isEgyhipHeadlineElement(el) {
+  if (!el || el.tagName !== 'P') return false;
+  const cls = typeof el.className === 'string' ? el.className : '';
+  if (cls.includes('egyhip')) return true;
+  return !!el.closest('div[class*="egyhip"]');
+}
+
+function minHeadlineLengthForElement(el) {
+  if (isEgyhipHeadlineElement(el)) return MIN_HEADLINE_LEN_SPECIFIC;
+  if (el.closest('[data-testid="well-section"]')) return MIN_HEADLINE_LEN_SPECIFIC;
+  if (el.closest('section.story-wrapper')) return MIN_HEADLINE_LEN_SPECIFIC;
+  return MIN_HEADLINE_LEN_BROAD;
+}
+
 // Scan for headlines, apply cached ones, and queue uncached for API processing
 function scanForHeadlines() {
   if (!extensionAlive || !isEnabled || !isCacheLoaded) return;
@@ -419,7 +438,7 @@ function scanForHeadlines() {
       document.querySelectorAll(selector).forEach(el => {
         if (!seen.has(el) &&
             isElementVisible(el) &&
-            el.textContent.trim().length >= 15 && 
+            el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
             !el.querySelector('button, input') &&
             !el.hasAttribute('data-neutralized')) {
           seen.add(el);
@@ -881,7 +900,7 @@ function applyAllCachedHeadlines() {
   HEADLINE_SELECTORS.forEach(selector => {
     document.querySelectorAll(selector).forEach(el => {
       if (isElementVisible(el) &&
-          el.textContent.trim().length >= 15 && 
+          el.textContent.trim().length >= minHeadlineLengthForElement(el) &&
           !el.querySelector('button, input') &&
           !el.hasAttribute('data-neutralized')) {
         
