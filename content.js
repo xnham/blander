@@ -61,6 +61,11 @@ const WELL_SECTION_SELECTORS = [
   '[data-testid="well-section"] article p',
 ];
 
+// "Watch Today's Videos" horizontal carousel (Betamax pool — stable test ids)
+const VIDEO_FEED_SELECTORS = [
+  '[data-testid="video-feed-scroll"] [data-testid="feed-item"] p',
+];
+
 // Heading-based selectors
 const HEADING_SELECTORS = [
   'h4.css-nsjm9t',                  // Section headline in h4
@@ -109,6 +114,7 @@ const GENERIC_SELECTORS = [
 const HEADLINE_SELECTORS = [
   ...PATTERN_SELECTORS,             // New approach - pattern-based selectors
   ...WELL_SECTION_SELECTORS,        // NEWS grid well-section headlines
+  ...VIDEO_FEED_SELECTORS,         // Watch Today's Videos carousel
   // Comment out other categories to disable them
   // ...SPECIFIC_CLASS_SELECTORS,   // Original approach - specific CSS classes
   // ...HEADING_SELECTORS,          // Heading selectors
@@ -422,6 +428,7 @@ function isEgyhipHeadlineElement(el) {
 function minHeadlineLengthForElement(el) {
   if (isEgyhipHeadlineElement(el)) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('[data-testid="well-section"]')) return MIN_HEADLINE_LEN_SPECIFIC;
+  if (el.closest('[data-testid="video-feed-scroll"]')) return MIN_HEADLINE_LEN_SPECIFIC;
   if (el.closest('section.story-wrapper')) return MIN_HEADLINE_LEN_SPECIFIC;
   return MIN_HEADLINE_LEN_BROAD;
 }
