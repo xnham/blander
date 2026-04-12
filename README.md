@@ -73,7 +73,7 @@ zip -r blander-extension.zip manifest.json background.js casing.js content.js \
   images/bored16.png images/bored48.png images/bored128.png
 ```
 
-Upload that file in the Chrome Web Store Developer Dashboard. End users set the API key in **Options** after install.
+Upload that file in the Chrome Web Store Developer Dashboard. Listing screenshots and promo images under `images/store/` (for example `store-screenshot.png`) are **not** included in the zip; add or replace them in the store listing UI. End users set the API key in **Options** after install.
 
 ## Privacy
 
